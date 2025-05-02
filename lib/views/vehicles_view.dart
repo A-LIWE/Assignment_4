@@ -1,103 +1,102 @@
 import 'package:flutter/material.dart';
-import 'package:parking_user/repositories/repositories.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parking_user/blocs/vehicle/vehicle_bloc.dart';
+import 'package:parking_user/blocs/vehicle/vehicle_event.dart';
+import 'package:parking_user/blocs/vehicle/vehicle_state.dart';
 import 'package:logger/logger.dart';
 import 'package:parking_user/models/models.dart';
 
 final logger = Logger();
 
-class VehiclesView extends StatefulWidget {
+class VehiclesView extends StatelessWidget {
+final String userPersonalNumber;
+  final String userName;
+
   const VehiclesView({
     super.key,
     required this.userPersonalNumber,
     required this.userName,
   });
 
-  final String userPersonalNumber;
-  final String userName;
+  
 
-  @override
-  State<VehiclesView> createState() => _VehiclesViewState();
-}
+ @override
+  Widget build(BuildContext context) {
+    return
+      Scaffold(
+        appBar: AppBar(title: const Text('Dina fordon')),
+        body: BlocBuilder<VehicleBloc, VehicleState>(
+          builder: (context, state) {
+            if (state is VehiclesLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-class _VehiclesViewState extends State<VehiclesView> {
-  List<Vehicle> vehicles = [];
-  bool isLoading = false;
+            if (state is VehiclesError) {
+              return Center(child: Text('Fel: ${state.message}'));
+            }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchVehicles();
-  }
+            if (state is VehiclesLoaded) {
+              // Filtrera på personalNumber
+              final vehicles = state.vehicles
+                  .where((v) => v.owner?.personalNumber == userPersonalNumber)
+                  .toList();
 
-  Future<void> _fetchVehicles() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      final vehicleRepo = VehicleRepository();
-      final data = await vehicleRepo.getAll(); 
-      
-      // Filtrera fordon baserat på personnummer
-      final filteredVehicles =
-          data
-              .where(
-                (v) => v.owner?.personalNumber == widget.userPersonalNumber,
-              )
-              .toList();
+              if (vehicles.isEmpty) {
+                return const Center(child: Text('Inga fordon hittades.'));
+              }
 
-      if (!mounted) return;
+              return ListView.builder(
+                itemCount: vehicles.length,
+                itemBuilder: (context, index) {
+                  final v = vehicles[index];
+                  return Dismissible(
+                    key: Key(v.registrationNumber),
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      color: Colors.red,
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) async {
+                      context.read<VehicleBloc>().add(DeleteVehicle(v.registrationNumber));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Raderade ${v.registrationNumber}')),
+                      );
+                      return true;
+                    },
+                    child: ListTile(
+                      title: Text(v.registrationNumber),
+                      subtitle: Text(v.vehicleType),
+                    ),
+                  );
+                },
+              );
+            }
 
-      if (data.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Inga fordon hittades")));
-      } else {
-        setState(() {
-          vehicles = filteredVehicles;
-        });
-      }
-    } catch (error, stackTrace) {
-      logger.e(
-        "Fel vid hämtning av fordon",
-        error: error,
-        stackTrace: stackTrace,
+            // initial state
+            return const SizedBox.shrink();
+          },
+        ),
+
+        // Lägg till nytt fordon
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _showAddDialog(context),
+          child: const Icon(Icons.add),
+        ),
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Fel vid hämtning av fordon: $error")),
-      );
-    }
-    setState(() {
-      isLoading = false;
-    });
+    
   }
 
-  // Raderar fordon baserat på fordonets registreringsnummer
-  Future<void> _deleteVehicle(String registrationNumber) async {
-    try {
-      final vehicleRepo = VehicleRepository();
-      final message = await vehicleRepo.delete(registrationNumber);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-    } catch (error) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Fel vid radering: $error")));
-    }
-  }
-
-  Future<void> _addVehicle(BuildContext parentContext) async {
-    String registrationNumber = "";
-    String? selectedVehicleType; 
-    final List<String> vehicleTypes = ['Bil', 'Motorcykel', 'Moped', 'Buss'];
-
+  void _showAddDialog(BuildContext context) {
+    String registrationNumber = '';
+    String? selectedVehicleType;
     final formKey = GlobalKey<FormState>();
+    const vehicleTypes = ['Bil', 'Motorcykel', 'Moped', 'Buss'];
 
-    await showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext dialogContext) {
+      builder: (dialogCtx) {
         return AlertDialog(
           title: const Text("Lägg till nytt fordon"),
           content: Form(
@@ -105,184 +104,52 @@ class _VehiclesViewState extends State<VehiclesView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Registreringsnummer med validering
+                // Regnr
                 TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: "Registreringsnummer",
-                  ),
+                  decoration: const InputDecoration(labelText: 'Registreringsnummer'),
                   textCapitalization: TextCapitalization.characters,
-                  onChanged: (value) {
-                    registrationNumber = value;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Ange registreringsnummer";
-                    }
-                    // Omvandla till versaler för validering
-                    final normalized = value.toUpperCase();
+                  onChanged: (v) => registrationNumber = v,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Fyll i regnr';
+                    final norm = v.toUpperCase();
                     final regex = RegExp(r'^[A-Z]{3}\d{2}[A-Z0-9]$');
-                    if (!regex.hasMatch(normalized)) {
-                      return "Ogiltigt regnr Format: AAA99X";
-                    }
+                    if (!regex.hasMatch(norm)) return 'Format: AAA99X';
                     return null;
                   },
                 ),
+
                 const SizedBox(height: 16),
-                // Dropdown för fordonstyp
+
+                // Fordonstyp
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: "Fordonstyp"),
-                  value: selectedVehicleType,
-                  items:
-                      vehicleTypes
-                          .map(
-                            (type) => DropdownMenuItem(
-                              value: type,
-                              child: Text(type),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (value) {
-                    selectedVehicleType = value;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Välj fordonstyp";
-                    }
-                    return null;
-                  },
+                  decoration: const InputDecoration(labelText: 'Fordonstyp'),
+                  items: vehicleTypes
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
+                  onChanged: (v) => selectedVehicleType = v,
+                  validator: (v) => v == null ? 'Välj typ' : null,
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text("Avbryt"),
-            ),
+            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Avbryt')),
             ElevatedButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) {
-                  return;
-                }
-                Navigator.pop(dialogContext);
-                final owner = Person(
-                  widget.userName,
-                  widget.userPersonalNumber,
-                );
-                final newVehicle = Vehicle(
-                  registrationNumber,
-                  selectedVehicleType!,
-                  owner,
-                );
-                final vehicleRepo = VehicleRepository();
-                try {
-                  await vehicleRepo.add(newVehicle);
-                  if (!mounted) return;
-                  _fetchVehicles();
-                } catch (error) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(error.toString())));
-                }
+              onPressed: () {
+                if (formKey.currentState?.validate() != true) return;
+                Navigator.pop(dialogCtx);
+
+                // Skapa Vehicle‐objekt och skicka AddVehicle
+                final owner = Person(userName, userPersonalNumber);
+                final newV = Vehicle(registrationNumber, selectedVehicleType!, owner);
+
+                context.read<VehicleBloc>().add(AddVehicle(newV));
               },
-              child: const Text("Lägg till"),
+              child: const Text('Lägg till'),
             ),
           ],
         );
       },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Mina fordon")),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                itemCount: vehicles.length,
-                itemBuilder: (context, index) {
-                  final vehicle = vehicles[index];
-                  return Dismissible(
-                    key: Key(vehicle.uuid),
-                    direction: DismissDirection.endToStart,
-                    // Bekräfta radering med en alertdialog innan fordonet tas bort
-                    confirmDismiss: (direction) async {
-                      return await showDialog<bool>(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: const Text("Radera fordon"),
-                              content: Text(
-                                "Är du säker på att du vill radera fordonet ${vehicle.registrationNumber}?",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed:
-                                      () => Navigator.of(context).pop(false),
-                                  child: const Text("Avbryt"),
-                                ),
-                                TextButton(
-                                  onPressed:
-                                      () => Navigator.of(context).pop(true),
-                                  child: const Text("Radera"),
-                                ),
-                              ],
-                            ),
-                      );
-                    },
-                    onDismissed: (direction) async {
-                      // Anropa din raderingslogik
-                      await _deleteVehicle(vehicle.registrationNumber);
-                      // Ta bort fordonet lokalt från listan
-                      setState(() {
-                        vehicles.removeAt(index);
-                      });
-                    },
-                    // Ange en "tom" bakgrund för att inte visa någon färg i vänstra delen
-                    background: Container(),
-                    // secondaryBackground används för att visa bakgrund vid svepning från höger till vänster.
-                    secondaryBackground: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.2,
-                            height: double.infinity,
-                            color: Colors.red,
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    child: ListTile(
-                      title: Text(vehicle.registrationNumber),
-                      subtitle: Text(vehicle.vehicleType),
-                    ),
-                  );
-                },
-              ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await _addVehicle(context);
-        },
-        label: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Text(
-              'Lägg till fordon',
-              style: TextStyle(fontSize: 15), // justera textstorlek här
-            ),
-            SizedBox(width: 8),
-            Icon(Icons.add),
-          ],
-        ),
-      ),
     );
   }
 }

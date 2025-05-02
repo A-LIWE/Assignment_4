@@ -301,34 +301,21 @@ class ParkingSpaceRepository {
 class ParkingSessionRepository {
   final String baseUrl = 'http://10.0.2.2:3000/api/parking_sessions';
 
-  Future<void> add(ParkingSession parking) async {
-    final Uri url = Uri.parse(baseUrl);
-    final String body = jsonEncode(parking.toJson());
+   Future<void> add(ParkingSession parking) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(parking.toJson()),
+    );
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      );
-
-      if (response.statusCode == 201) {
-        print(
-          '\n✅ Parkering startad för ${parking.vehicle.vehicleType} med registreringsnummer: ${parking.vehicle.registrationNumber}.',
-        );
-      } else if (response.statusCode == 400) {
-        final Map<String, dynamic> errorData = jsonDecode(response.body);
-        final errorMessage = errorData['error'] ?? 'Okänt fel';
-        print('\n❌ $errorMessage');
-      } else {
-        throw Exception(
-          '❌ Misslyckades att starta parkering. Felkod: ${response.statusCode}, ${response.body}',
-        );
-      }
-    } catch (e) {
-      print('❌ Ett fel uppstod: $e');
+    if (response.statusCode == 201) {
+      return;
     }
+    final Map<String, dynamic> errorData = jsonDecode(response.body);
+    final msg = errorData['error'] as String? ?? 'Okänt fel från servern';
+    throw Exception(msg);
   }
+
 
   Future<List<ParkingSession>> getAll() async {
     final response = await http.get(Uri.parse(baseUrl));

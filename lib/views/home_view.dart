@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parking_user/blocs/parking_session/parking_session_bloc.dart';
+import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
 import 'vehicles_view.dart';
 import 'start_parking_view.dart';
 import 'manage_parkings_view.dart';
@@ -47,6 +50,9 @@ class _NavigationMenuState extends State<NavigationMenu> {
           setState(() {
             currentPageIndex = index;
           });
+          if (index == 2) {
+            context.read<ParkingSessionBloc>().add(LoadSessions());
+          }
         },
         indicatorColor: Colors.amber,
         selectedIndex: currentPageIndex,
