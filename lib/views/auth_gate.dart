@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parking_user/main.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'login_view.dart';
@@ -15,6 +16,9 @@ class AuthGate extends StatelessWidget {
       return HomeView(
         userPersonalNumber: auth.userPersonalNumber!,
         userName: auth.userName!,
+        toggleTheme: () {
+          myAppKey.currentState?.toggleTheme();
+        },
       );
     }
   }

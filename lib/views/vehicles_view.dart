@@ -18,8 +18,6 @@ final String userPersonalNumber;
     required this.userName,
   });
 
-  
-
  @override
   Widget build(BuildContext context) {
     return
@@ -73,8 +71,7 @@ final String userPersonalNumber;
                 },
               );
             }
-
-            // initial state
+            
             return const SizedBox.shrink();
           },
         ),

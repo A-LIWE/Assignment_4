@@ -11,7 +11,6 @@ void main() {
   late VehicleBloc bloc;
   late MockVehicleRepository mockRepo;
 
-  // Testdata: några enkla Vehicle-objekt
   final vehicle1 = Vehicle('ABC123', 'Bil', null);
   final vehicle2 = Vehicle('XYZ999', 'Bus', null);
   final allVehicles = [vehicle1, vehicle2];
@@ -40,7 +39,7 @@ void main() {
   );
 
   blocTest<VehicleBloc, VehicleState>(
-  'När LoadVehicles läggs på, och getAll kastar, '
+  'När LoadVehicles läggs på, och getAll körs, '
   'så skall den emitta [VehiclesLoading, VehiclesError]',
   build: () {
     when(() => mockRepo.getAll()).thenThrow(Exception('Nätverksfel'));

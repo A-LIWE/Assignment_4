@@ -1,14 +1,10 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-
 import 'package:parking_user/blocs/parking_session/parking_session_bloc.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_state.dart';
 import 'package:parking_user/models/models.dart';
-
-
 import '../mocks.dart';
 
 void main() {
@@ -22,7 +18,6 @@ void main() {
   final session2     = ParkingSession(dummyVehicle, dummySpace, DateTime(2025, 5, 1, 9, 0));
 
   setUpAll(() {
-    // Registrera så that any<ParkingSession>() fungerar
     registerFallbackValue(session1);
   });
 

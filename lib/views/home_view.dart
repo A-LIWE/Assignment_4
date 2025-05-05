@@ -11,16 +11,19 @@ class HomeView extends StatelessWidget {
     super.key,
     required this.userPersonalNumber,
     required this.userName,
+    required this.toggleTheme,
   });
 
   final String userPersonalNumber;
   final String userName;
+  final VoidCallback toggleTheme;
 
   @override
   Widget build(BuildContext context) {
     return NavigationMenu(
       userPersonalNumber: userPersonalNumber,
       userName: userName,
+      toggleTheme: toggleTheme,
     );
   }
 }
@@ -30,10 +33,14 @@ class NavigationMenu extends StatefulWidget {
     super.key,
     required this.userPersonalNumber,
     required this.userName,
+    required this.toggleTheme,
   });
 
   final String userPersonalNumber;
   final String userName;
+  final VoidCallback toggleTheme;
+  
+
 
   @override
   State<NavigationMenu> createState() => _NavigationMenuState();
@@ -88,7 +95,10 @@ class _NavigationMenuState extends State<NavigationMenu> {
             userPersonalNumber: widget.userPersonalNumber,
             userName: widget.userName,
           ),
-          ManageParkingsView(key: const PageStorageKey('manage_parkings_view')),
+          ManageParkingsView(
+            userPersonalNumber: widget.userPersonalNumber,
+            toggleTheme: widget.toggleTheme,
+          ),
         ],
       ),
     );

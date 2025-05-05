@@ -1,25 +1,19 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-
 import 'package:parking_user/blocs/parking_space/parking_space_bloc.dart';
 import 'package:parking_user/blocs/parking_space/parking_space_event.dart';
 import 'package:parking_user/blocs/parking_space/parking_space_state.dart';
 import 'package:parking_user/models/models.dart';
-
-// Hämtar dina mocks
 import '../mocks.dart';
 
 void main() {
   late ParkingSpaceBloc bloc;
   late MockParkingSpaceRepository mockRepo;
 
-  // Exempeldata
   final space1 = ParkingSpace('A1', 'Gatan 1', 30.0);
   final space2 = ParkingSpace('B2', 'Gatan 2', 45.5);
   final allSpaces = [space1, space2];
-
- 
 
   setUp(() {
     mockRepo = MockParkingSpaceRepository();
