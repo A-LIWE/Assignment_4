@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parking_user/blocs/auth/auth_bloc.dart';
+import 'package:parking_user/blocs/auth/auth_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_bloc.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_state.dart';
-import 'package:parking_user/providers/auth_provider.dart';
 
 class ManageParkingsView extends StatelessWidget {
   const ManageParkingsView({super.key, required String userPersonalNumber, required this.toggleTheme,});
@@ -121,7 +122,7 @@ class ManageParkingsView extends StatelessWidget {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        context.read<AuthProvider>().logout();
+                        context.read<AuthBloc>().add(LogoutRequested());
                       },
                       child: const Text('Logga ut'),
                     ),
