@@ -7,7 +7,11 @@ import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_state.dart';
 
 class ManageParkingsView extends StatelessWidget {
-  const ManageParkingsView({super.key, required String userPersonalNumber, required this.toggleTheme,});
+  const ManageParkingsView({
+    super.key,
+    required String userPersonalNumber,
+    required this.toggleTheme,
+  });
 
   final VoidCallback toggleTheme;
 
@@ -28,10 +32,19 @@ class ManageParkingsView extends StatelessWidget {
           }
 
           if (state is SessionsLoaded) {
+            final now = DateTime.now();
             final activeSessions =
-                state.sessions.where((s) => s.endTime == null).toList();
+                state.sessions.where((s) {
+                  // Om endTime fortfarande kan vara null: räkna dem som aktiva
+                  if (s.endTime == null) return true;
+                  // Annars: aktiv om sluttiden är i framtiden
+                  return s.endTime!.isAfter(now);
+                }).toList();
             final historicalSessions =
-                state.sessions.where((s) => s.endTime != null).toList();
+                state.sessions.where((s) {
+                  // Endast de som verkligen är avslutade
+                  return s.endTime != null && s.endTime!.isBefore(now);
+                }).toList();
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -56,8 +69,17 @@ class ManageParkingsView extends StatelessWidget {
                               title: Text(
                                 '${session.parkingSpace.address} – ${session.vehicle.registrationNumber}',
                               ),
-                              subtitle: Text(
-                                'Starttid: ${session.startTime.toString().substring(0, 16)}',
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Startad: ${session.startTime.toString().substring(0, 16)}',
+                                  ),
+                                  Text(
+                                    'Avslutas: ${session.endTime?.toString().substring(0, 16) ?? '–'}',
+                                  ),
+                                ],
                               ),
                               trailing: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
@@ -98,8 +120,8 @@ class ManageParkingsView extends StatelessWidget {
                                 '${session.parkingSpace.address} – ${session.vehicle.registrationNumber}',
                               ),
                               subtitle: Text(
-                                'Start: ${session.startTime.toString().substring(0, 16)}\n'
-                                'Slut: ${session.endTime!.toString().substring(0, 16)}',
+                                'Startad: ${session.startTime.toString().substring(0, 16)}\n'
+                                'Avslutad: ${session.endTime!.toString().substring(0, 16)}',
                               ),
                               trailing: IconButton(
                                 icon: const Icon(Icons.delete),

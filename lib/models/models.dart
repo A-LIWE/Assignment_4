@@ -144,9 +144,9 @@ class ParkingSession {
   ParkingSession(
     this.vehicle,
     this.parkingSpace,
-    this.startTime, [
-    this.endTime,
-  ]) : uuid = Uuid().v4();
+    this.startTime, {
+    this.endTime,       
+  }) : uuid = Uuid().v4();
 
   String get formattedStartTime {
     final formatter = DateFormat('yyyy-MM-dd HH:mm');
@@ -177,7 +177,7 @@ class ParkingSession {
       Vehicle.fromJson(vehicleMap),
       ParkingSpace.fromJson(parkingSpaceMap),
       DateTime.parse(json['start_time']),
-      json['end_time'] != null ? DateTime.parse(json['end_time']) : null,
+      endTime: json['end_time'] != null ? DateTime.parse(json['end_time']) : null,
     );
   }
 

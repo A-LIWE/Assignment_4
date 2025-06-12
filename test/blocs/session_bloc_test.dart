@@ -10,6 +10,7 @@ import '../mocks.dart';
 void main() {
   late ParkingSessionBloc bloc;
   late MockParkingSessionRepository mockRepo;
+  late MockNotificationRepository mockNotifRepo;
 
   // Exempel‐objekt för testerna
   final dummyVehicle = Vehicle('ABC123', 'BIL', null);
@@ -31,7 +32,8 @@ void main() {
 
   setUp(() {
     mockRepo = MockParkingSessionRepository();
-    bloc = ParkingSessionBloc(mockRepo);
+    mockNotifRepo =MockNotificationRepository();
+    bloc = ParkingSessionBloc(mockRepo, mockNotifRepo);
   });
 
   tearDown(() {
