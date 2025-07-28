@@ -1,0 +1,26 @@
+{
+  "name": "parking_user",
+  "version": "1.0.0",
+  "description": "Borde räcka med flutter pub get för att installera alla dependencies. Har ej någon .env fil. Min anon key till Supabase ligger direkt i main filen.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "flutter build web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/A-LIWE/Assignment_4.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/A-LIWE/Assignment_4/issues"
+  },
+  "homepage": "https://github.com/A-LIWE/Assignment_4#readme"
+}
