@@ -47,7 +47,7 @@ Future<void> _configureLocalTimeZone() async {
 Future<FlutterLocalNotificationsPlugin> initializeNotifications() async {
   var flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   var initializationSettingsAndroid = const AndroidInitializationSettings(
-    'notification_2',
+    'notification',
   );
   var initializationSettingsDarwin = const DarwinInitializationSettings();
   var initializationSettingsLinux = const LinuxInitializationSettings(

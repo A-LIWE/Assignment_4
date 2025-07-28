@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_bloc.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
@@ -48,6 +49,24 @@ class NavigationMenu extends StatefulWidget {
 
 class _NavigationMenuState extends State<NavigationMenu> {
   int currentPageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Text('Välkommen ${widget.userName}!'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

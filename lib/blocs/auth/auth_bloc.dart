@@ -27,7 +27,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
       final user = cred.user!;
-      emit(AuthAuthenticated(user.uid, user.email!));
+      final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    final username = doc.data()?['name'] as String? ?? user.email!;
+      emit(AuthAuthenticated(user.uid, user.email!, username,));
     } on FirebaseAuthException catch (e) {
       String msg;
       switch (e.code) {
@@ -64,6 +69,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
     );
     final user = cred.user!;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    final username = doc.data()?['name'] as String? ?? user.email!;
 
     // 3) Spara resten av användardatan under collection "users/{uid}"
     await FirebaseFirestore.instance
@@ -78,7 +88,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // 4) Informera UI
     emit(AuthRegistered(event.username));
-    emit(AuthAuthenticated(user.uid, user.email!));
+    emit(AuthAuthenticated(user.uid, user.email!, username,));
 
   } on FirebaseAuthException catch (e) {
     final msg = switch (e.code) {

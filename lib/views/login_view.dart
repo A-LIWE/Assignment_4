@@ -5,7 +5,6 @@ import 'package:parking_user/blocs/auth/auth_event.dart';
 import 'package:parking_user/blocs/auth/auth_state.dart';
 import 'package:parking_user/views/registration_view.dart';
 
-
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -14,7 +13,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final TextEditingController _emailController    = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
@@ -24,13 +23,52 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('DEBUG: initState called'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    });
+  }
+
   void _onLoginPressed() {
-    final email    = _emailController.text.trim();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('DEBUG: Entered _onLoginPressed'),
+        duration: Duration(seconds: 3),
+      ),
+    );
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Fyll i e-post och lösenord")),
-      );
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: Colors.red.shade600,
+              content: Row(
+                children: [
+                  const Icon(Icons.cancel, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Fyll i e-post och lösenord!',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
+            ),
+          );
       return;
     }
     // Skicka eventet till AuthBloc
@@ -39,28 +77,98 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthError) {
-          // Visa felmeddelande från BLoC
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-        // Vid AuthAuthenticated kör AuthGate om du har en sådan,
-        // alternativt kan du navigera här om du vill:
-        // if (state is AuthAuthenticated) { … }
-      },
-      builder: (context, state) {
-        final isLoading = state is AuthLoading;
+    return Scaffold(
+      body: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('DEBUG: listener fired for state ${state.runtimeType}'),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          });
+          if (state is AuthAuthenticated) {
+            // Visa välkomst-snackbar
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  backgroundColor: Colors.green.shade600,
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Välkommen ${state.username}!',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            });
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (!mounted) return;
+              Navigator.pop(context);
+            });
+          } else if (state is AuthError) {
+            // Visa fel-snackbar
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.red.shade600,
+                content: Text(
+                  state.message,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Logga in')),
-          body: Padding(
+          return Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment:
+                  CrossAxisAlignment
+                      .center, // se till att barnen är centrerade horisontellt
               children: [
+                // Här lägger vi in ikonen
+                Image.asset(
+                  'assets/images/parking_icon.png',
+                  width: 180,
+                  height: 180,
+                ),
+
+                const SizedBox(height: 8),
+
+                const Text(
+                  'Välkommen till Parkera Fint',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 242, 132, 54),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 32),
                 // E-postfält
                 TextField(
                   controller: _emailController,
@@ -87,9 +195,25 @@ class _LoginViewState extends State<LoginView> {
                 isLoading
                     ? const CircularProgressIndicator()
                     : ElevatedButton(
-                        onPressed: _onLoginPressed,
-                        child: const Text('Logga in'),
+                      onPressed: _onLoginPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          242,
+                          132,
+                          54,
+                        ),
+                        minimumSize: const Size(200, 50), // bredd 200, höjd 50
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                        ), // extra vertikal inre marginal
+                        textStyle: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ), // större text
                       ),
+                      child: const Text('Logga in'),
+                    ),
                 const SizedBox(height: 16),
 
                 // Navigering till registreringssida
@@ -102,13 +226,19 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     );
                   },
-                  child: const Text('Registrera dig'),
+                  child: const Text(
+                    'Registrera dig',
+                    style: TextStyle(
+                      fontSize: 18, // valfri större storlek
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

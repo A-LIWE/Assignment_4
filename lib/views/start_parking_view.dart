@@ -43,7 +43,7 @@ class _StartParkingViewState extends State<StartParkingView> {
       padding: MediaQuery.of(bottomCtx).viewInsets,
       child: StatefulBuilder(
         builder: (modalCtx, setModalState) {
-          Future<void> _pickEndTime() async {
+          Future<void> pickEndTime() async {
   final now = DateTime.now();
   final date = await showDatePicker(
     context: modalCtx,
@@ -138,7 +138,7 @@ class _StartParkingViewState extends State<StartParkingView> {
                       ? DateFormat('yyyy-MM-dd HH:mm')
                           .format(selectedEndTime!)
                       : 'Välj sluttid'),
-                  onTap: _pickEndTime,
+                  onTap: pickEndTime,
                 ),
 
                 const SizedBox(height: 8),

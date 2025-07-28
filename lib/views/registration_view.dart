@@ -35,9 +35,25 @@ class _RegistrationViewState extends State<RegistrationView> {
           // Visar välkomst-snackbar med användarnamnet
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Registrering lyckades! Välkommen ${state.username}!',
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
+              backgroundColor: Colors.green.shade600,
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Registrering lyckades! Välkommen ${state.username}!',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
             ),
           );
           Navigator.pop(context);

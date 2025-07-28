@@ -23,10 +23,11 @@ class AuthRegistered extends AuthState {
 class AuthAuthenticated extends AuthState {
   final String uid;
   final String email;
-  AuthAuthenticated(this.uid, this.email);
+  final String username;
+  AuthAuthenticated(this.uid, this.email, this.username,);
 
   @override
-  List<Object?> get props => [uid, email];
+  List<Object?> get props => [uid, email, username];
 }
 
 /// Autentisering misslyckades
