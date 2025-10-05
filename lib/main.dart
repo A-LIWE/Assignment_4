@@ -24,23 +24,17 @@ import 'package:timezone/timezone.dart' as tz;
 final GlobalKey<MyAppState> myAppKey = GlobalKey<MyAppState>();
 
 Future<void> _configureLocalTimeZone() async {
-  // On the web or Linux, flutter_timezone isn't supported, so skip.
-  if (kIsWeb || Platform.isLinux) {
-    return;
-  }
+  // Skip entirely on web
+  if (kIsWeb) return;
 
-  // 1. Load all available time zones
+  // On Linux also skip flutter_timezone
+  if (Platform.isLinux) return;
+
   tz.initializeTimeZones();
 
-  // 2. On Windows you can just use the default (skip the rest)
-  if (Platform.isWindows) {
-    return;
-  }
+  if (Platform.isWindows) return;
 
-  // 3. Query the device’s current timezone
   final String timeZoneName = await FlutterTimezone.getLocalTimezone();
-
-  // 4. Tell the tz package what “local” means
   tz.setLocalLocation(tz.getLocation(timeZoneName));
 }
 
@@ -75,20 +69,31 @@ Future<FlutterLocalNotificationsPlugin> initializeNotifications() async {
 late FlutterLocalNotificationsPlugin notificationPlugin;
 
 Future<void> requestPermissions() async {
-  if (Platform.isIOS) {
-    final impl = notificationPlugin
-        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
-    await impl?.requestPermissions(alert: true, badge: true, sound: true);
-  }
-  if (Platform.isMacOS) {
-    final impl = notificationPlugin
-        .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>();
-    await impl?.requestPermissions(alert: true, badge: true, sound: true);
-  }
-  if (Platform.isAndroid) {
-    final impl = notificationPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await impl?.requestNotificationsPermission();
+  if (!kIsWeb) {
+    if (Platform.isIOS) {
+      final impl =
+          notificationPlugin
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >();
+      await impl?.requestPermissions(alert: true, badge: true, sound: true);
+    }
+    if (Platform.isMacOS) {
+      final impl =
+          notificationPlugin
+              .resolvePlatformSpecificImplementation<
+                MacOSFlutterLocalNotificationsPlugin
+              >();
+      await impl?.requestPermissions(alert: true, badge: true, sound: true);
+    }
+    if (Platform.isAndroid) {
+      final impl =
+          notificationPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      await impl?.requestNotificationsPermission();
+    }
   }
 }
 
@@ -126,10 +131,10 @@ void main() async {
           },
         ),
 
-         BlocProvider<ParkingSessionBloc>(
+        BlocProvider<ParkingSessionBloc>(
           create: (_) {
             final sessionRepo = ParkingSessionRepository();
-            final notifRepo   = NotificationRepository(notificationPlugin);
+            final notifRepo = NotificationRepository(notificationPlugin);
             return ParkingSessionBloc(sessionRepo, notifRepo)
               ..add(LoadSessions());
           },

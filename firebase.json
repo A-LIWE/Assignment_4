@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"flutter-parkingapp","appId":"1:386210434859:android:ad379243e4081450407f6e","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"flutter-parkingapp","configurations":{"android":"1:386210434859:android:ad379243e4081450407f6e","web":"1:386210434859:web:f115d69280317447407f6e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "flutter-parkingapp",
+          "appId": "1:386210434859:android:ad379243e4081450407f6e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "flutter-parkingapp",
+          "configurations": {
+            "android": "1:386210434859:android:ad379243e4081450407f6e",
+            "web": "1:386210434859:web:f115d69280317447407f6e"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
