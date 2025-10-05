@@ -33,146 +33,172 @@ class _StartParkingViewState extends State<StartParkingView> {
   }
 
   void _showVehiclePicker(BuildContext ctx, ParkingSpace space) {
-  Vehicle? selectedVehicle;
-  DateTime? selectedEndTime;
+    Vehicle? selectedVehicle;
+    DateTime? selectedEndTime;
 
-  showModalBottomSheet(
-    context: ctx,
-    isScrollControlled: true,
-    builder: (bottomCtx) => Padding(
-      padding: MediaQuery.of(bottomCtx).viewInsets,
-      child: StatefulBuilder(
-        builder: (modalCtx, setModalState) {
-          Future<void> pickEndTime() async {
-  final now = DateTime.now();
-  final date = await showDatePicker(
-    context: modalCtx,
-    initialDate: now,
-    firstDate: now,
-    lastDate: now.add(const Duration(days: 7)),
-  );
-  if (date == null) return;
+    showModalBottomSheet(
+      context: ctx,
+      isScrollControlled: true,
+      builder:
+          (bottomCtx) => Padding(
+            padding: MediaQuery.of(bottomCtx).viewInsets,
+            child: StatefulBuilder(
+              builder: (modalCtx, setModalState) {
+                Future<void> pickEndTime() async {
+                  final now = DateTime.now();
+                  final date = await showDatePicker(
+                    context: modalCtx,
+                    initialDate: now,
+                    firstDate: now,
+                    lastDate: now.add(const Duration(days: 7)),
+                  );
+                  if (date == null) return;
 
-  final time = await showTimePicker(
-    context: modalCtx,
-    initialTime: TimeOfDay(hour: now.hour, minute: now.minute),
-    builder: (context, child) {
-      // Här tvingar vi 24-timmarsformat
-      return MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      );
-    },
-  );
-  if (time == null) return;
-
-  setModalState(() {
-    selectedEndTime = DateTime(
-      date.year, date.month, date.day, time.hour, time.minute,
-    );
-  });
-}
-
-          return SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 16),
-                Text("Starta parkering på",
-                    style: Theme.of(ctx).textTheme.titleMedium),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(space.address,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                const Divider(),
-
-                // Fordonslista
-                BlocBuilder<VehicleBloc, VehicleState>(
-                  builder: (_, vState) {
-                    if (vState is VehiclesLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(child: CircularProgressIndicator()),
+                  final time = await showTimePicker(
+                    context: modalCtx,
+                    initialTime: TimeOfDay(hour: now.hour, minute: now.minute),
+                    builder: (context, child) {
+                      // Här tvingar vi 24-timmarsformat
+                      return MediaQuery(
+                        data: MediaQuery.of(
+                          context,
+                        ).copyWith(alwaysUse24HourFormat: true),
+                        child: child!,
                       );
-                    } else if (vState is VehiclesError) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Center(child: Text(vState.message)),
-                      );
-                    } else if (vState is VehiclesLoaded) {
-                      final yourVehicles = vState.vehicles
-                          .where((v) =>
-                              v.owner?.personalNumber == widget.userPersonalNumber)
-                          .toList();
-                      if (yourVehicles.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text("Inga fordon registrerade."),
-                        );
-                      }
-                      return Column(
-                        children: yourVehicles.map((v) {
-                          return RadioListTile<Vehicle>(
-                            title: Text(v.registrationNumber),
-                            subtitle: Text(v.vehicleType),
-                            value: v,
-                            groupValue: selectedVehicle,
-                            onChanged: (sel) =>
-                                setModalState(() => selectedVehicle = sel),
-                          );
-                        }).toList(),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+                    },
+                  );
+                  if (time == null) return;
 
-                const SizedBox(height: 16),
+                  setModalState(() {
+                    selectedEndTime = DateTime(
+                      date.year,
+                      date.month,
+                      date.day,
+                      time.hour,
+                      time.minute,
+                    );
+                  });
+                }
 
-                // Välj sluttid
-                ListTile(
-                  leading: const Icon(Icons.schedule),
-                  title: Text(selectedEndTime != null
-                      ? DateFormat('yyyy-MM-dd HH:mm')
-                          .format(selectedEndTime!)
-                      : 'Välj sluttid'),
-                  onTap: pickEndTime,
-                ),
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 16),
+                      Text(
+                        "Starta parkering på",
+                        style: Theme.of(ctx).textTheme.titleMedium,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          space.address,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Divider(),
 
-                const SizedBox(height: 8),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ElevatedButton(
-                    onPressed: (selectedVehicle == null ||
-                            selectedEndTime == null)
-                        ? null
-                        : () {
-                            final session = ParkingSession(
-                              selectedVehicle!,
-                              space,
-                              DateTime.now(),
-                              endTime: selectedEndTime,
+                      // Fordonslista
+                      BlocBuilder<VehicleBloc, VehicleState>(
+                        builder: (_, vState) {
+                          if (vState is VehiclesLoading) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
                             );
-                            ctx
-                                .read<ParkingSessionBloc>()
-                                .add(StartSession(session));
-                            Navigator.pop(bottomCtx);
-                          },
-                    child: const Text("Starta parkering"),
+                          } else if (vState is VehiclesError) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(child: Text(vState.message)),
+                            );
+                          } else if (vState is VehiclesLoaded) {
+                            final yourVehicles =
+                                vState.vehicles
+                                    .where(
+                                      (v) =>
+                                          v.owner?.personalNumber ==
+                                          widget.userPersonalNumber,
+                                    )
+                                    .toList();
+                            if (yourVehicles.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text("Inga fordon registrerade."),
+                              );
+                            }
+                            return Column(
+                              children:
+                                  yourVehicles.map((v) {
+                                    return RadioListTile<Vehicle>(
+                                      title: Text(v.registrationNumber),
+                                      subtitle: Text(v.vehicleType),
+                                      value: v,
+                                      groupValue: selectedVehicle,
+                                      onChanged:
+                                          (sel) => setModalState(
+                                            () => selectedVehicle = sel,
+                                          ),
+                                    );
+                                  }).toList(),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Välj sluttid
+                      ListTile(
+                        leading: const Icon(Icons.schedule),
+                        title: Text(
+                          selectedEndTime != null
+                              ? DateFormat(
+                                'yyyy-MM-dd HH:mm',
+                              ).format(selectedEndTime!)
+                              : 'Välj sluttid',
+                        ),
+                        onTap: pickEndTime,
+                      ),
+
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: ElevatedButton(
+                          onPressed:
+                              (selectedVehicle == null ||
+                                      selectedEndTime == null)
+                                  ? null
+                                  : () {
+                                    final session = ParkingSession(
+                                      selectedVehicle!,
+                                      space,
+                                      DateTime.now(),
+                                      endTime: selectedEndTime,
+                                    );
+                                    ctx.read<ParkingSessionBloc>().add(
+                                      StartSession(session),
+                                    );
+                                    Navigator.pop(bottomCtx);
+                                  },
+                          child: const Text("Starta parkering"),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                );
+              },
             ),
-          );
-        },
-      ),
-    ),
-  );
-}
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -192,9 +218,16 @@ class _StartParkingViewState extends State<StartParkingView> {
             ),
           );
         } else if (state is SessionsError) {
+          // logga till terminalen
+          print('SnackBar: ${state.message}');
+
+          // visa meddelandet i appen
           ScaffoldMessenger.of(ctx).showSnackBar(
             SnackBar(
               content: Text("Fel vid start av parkering: ${state.message}"),
+              duration: const Duration(
+                seconds: 10,
+              ), // gör det längre så du hinner läsa
             ),
           );
         }

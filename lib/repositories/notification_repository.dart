@@ -1,12 +1,34 @@
 
 
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationRepository {
   final FlutterLocalNotificationsPlugin _plugin;
+  bool _tzInitialized = false;
 
   NotificationRepository(this._plugin);
+
+  /// Måste köras innan du använder notiser
+  Future<void> initializeTimeZone() async {
+    if (kIsWeb || Platform.isLinux || Platform.isWindows) {
+      // Hoppa över på plattformar där det inte stöds
+      return;
+    }
+
+    try {
+      tz.initializeTimeZones();
+      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      _tzInitialized = true;
+    } catch (e) {
+      debugPrint('Kunde inte initiera tidszon: $e');
+    }
+  }
 
   /// Schemalägg en notis 15 minuter innan `endTime`.
   Future<void> scheduleReminder({
@@ -14,15 +36,16 @@ class NotificationRepository {
     required String title,
     required String body,
     required DateTime endTime,
-  }) {
-    // Beräkna när notisen ska triggas (15 min före sluttid)
-    final reminderTime = tz.TZDateTime.from(
-      endTime,
-      tz.local,
-    ).subtract(const Duration(minutes: 15));
+  }) async {
+    if (!_tzInitialized) {
+      debugPrint('Tidszon ej initierad – hoppar över schemaläggning.');
+      return;
+    }
 
-    return _plugin.zonedSchedule(
-      // Använd hashCode eller annat unikt int som ID
+    final reminderTime = tz.TZDateTime.from(endTime, tz.local)
+        .subtract(const Duration(minutes: 15));
+
+    await _plugin.zonedSchedule(
       id.hashCode,
       title,
       body,
@@ -40,15 +63,14 @@ class NotificationRepository {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dateAndTime,
     );
   }
 
-  /// Avbryt en schemalagd notis (använd samma `id`).
   Future<void> cancelReminder(String id) {
     return _plugin.cancel(id.hashCode);
   }
 
-  /// Uppdatera en schemalagd påminnelse: avbryt + schemalägg på nytt.
   Future<void> rescheduleReminder({
     required String id,
     required String title,

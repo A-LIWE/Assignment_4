@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parking_user/blocs/auth/auth_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_bloc.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
 import 'vehicles_view.dart';
 import 'start_parking_view.dart';
 import 'manage_parkings_view.dart';
+import 'package:parking_user/blocs/auth/auth_bloc.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({
@@ -40,8 +42,6 @@ class NavigationMenu extends StatefulWidget {
   final String userPersonalNumber;
   final String userName;
   final VoidCallback toggleTheme;
-  
-
 
   @override
   State<NavigationMenu> createState() => _NavigationMenuState();
@@ -73,11 +73,49 @@ class _NavigationMenuState extends State<NavigationMenu> {
     return Scaffold(
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
-          setState(() {
-            currentPageIndex = index;
-          });
-          if (index == 2) {
-            context.read<ParkingSessionBloc>().add(LoadSessions());
+          if (index == 3) {
+            showModalBottomSheet(
+              context: context,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              builder: (_) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: Icon(
+                          isDark ? Icons.wb_sunny : Icons.nights_stay,
+                        ),
+                        title: Text(isDark ? 'Ljust läge' : 'Mörkt läge'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          widget.toggleTheme();
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.logout),
+                        title: const Text('Logga ut'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.read<AuthBloc>().add(LogoutRequested());
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          } else {
+            setState(() {
+              currentPageIndex = index;
+            });
+
+            if (index == 2) {
+              context.read<ParkingSessionBloc>().add(LoadSessions());
+            }
           }
         },
         indicatorColor: Colors.amber,
@@ -97,6 +135,11 @@ class _NavigationMenuState extends State<NavigationMenu> {
             selectedIcon: Icon(Icons.timer),
             icon: Icon(Icons.timer_outlined),
             label: 'Aktiva',
+          ),
+          NavigationDestination(
+            selectedIcon: Icon(Icons.settings),
+            icon: Icon(Icons.settings_outlined),
+            label: 'Inställningar',
           ),
         ],
       ),

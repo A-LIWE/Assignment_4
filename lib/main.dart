@@ -24,51 +24,34 @@ import 'package:timezone/timezone.dart' as tz;
 final GlobalKey<MyAppState> myAppKey = GlobalKey<MyAppState>();
 
 Future<void> _configureLocalTimeZone() async {
-  // Skip entirely on web
-  if (kIsWeb) return;
-
-  // On Linux also skip flutter_timezone
-  if (Platform.isLinux) return;
+  if (kIsWeb || Platform.isLinux || Platform.isWindows) return;
 
   tz.initializeTimeZones();
-
-  if (Platform.isWindows) return;
-
   final String timeZoneName = await FlutterTimezone.getLocalTimezone();
   tz.setLocalLocation(tz.getLocation(timeZoneName));
 }
 
 Future<FlutterLocalNotificationsPlugin> initializeNotifications() async {
-  var flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  var initializationSettingsAndroid = const AndroidInitializationSettings(
-    'notification',
-  );
-  var initializationSettingsDarwin = const DarwinInitializationSettings();
-  var initializationSettingsLinux = const LinuxInitializationSettings(
-    defaultActionName: 'Open notification',
-  );
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  const WindowsInitializationSettings initializationSettingsWindows =
-      WindowsInitializationSettings(
-        appName: 'parking_user',
-        appUserModelId: 'Com.Example.App',
-        guid: '9ccd69ae-137d-420e-8c05-e1452333751e',
-      );
-  var initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsDarwin,
-    macOS: initializationSettingsDarwin,
-    windows: initializationSettingsWindows,
-    linux: initializationSettingsLinux,
+  const initializationSettings = InitializationSettings(
+    android: AndroidInitializationSettings('notification'),
+    iOS: DarwinInitializationSettings(),
+    macOS: DarwinInitializationSettings(),
+    linux: LinuxInitializationSettings(defaultActionName: 'Open notification'),
+    windows: WindowsInitializationSettings(
+      appName: 'parking_user',
+      appUserModelId: 'Com.Example.App',
+      guid: '9ccd69ae-137d-420e-8c05-e1452333751e',
+    ),
   );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   return flutterLocalNotificationsPlugin;
 }
 
-late FlutterLocalNotificationsPlugin notificationPlugin;
 
-Future<void> requestPermissions() async {
+Future<void> requestPermissions(FlutterLocalNotificationsPlugin notificationPlugin) async {
   if (!kIsWeb) {
     if (Platform.isIOS) {
       final impl =
@@ -102,9 +85,9 @@ void main() async {
 
   await _configureLocalTimeZone();
 
-  notificationPlugin = await initializeNotifications();
+  final notificationPlugin = await initializeNotifications();
 
-  await requestPermissions();
+  await requestPermissions(notificationPlugin);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:parking_user/blocs/auth/auth_bloc.dart';
-import 'package:parking_user/blocs/auth/auth_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_bloc.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_event.dart';
 import 'package:parking_user/blocs/parking_session/parking_session_state.dart';
@@ -139,31 +137,6 @@ class ManageParkingsView extends StatelessWidget {
                       ),
 
                   const SizedBox(height: 80),
-
-                  // Logga ut knapp
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.read<AuthBloc>().add(LogoutRequested());
-                      },
-                      child: const Text('Logga ut'),
-                    ),
-                  ),
-                  // Darkmode knapp
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: IconButton(
-                      iconSize: 32,
-                      onPressed: toggleTheme,
-                      icon: Icon(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? Icons.wb_sunny
-                            : Icons.nights_stay,
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(height: 24),
                 ],
               ),
