@@ -26,49 +26,36 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('DEBUG: initState called'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
 
   void _onLoginPressed() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('DEBUG: Entered _onLoginPressed'),
-        duration: Duration(seconds: 3),
-      ),
-    );
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.red.shade600,
+          content: Row(
+            children: [
+              const Icon(Icons.cancel, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Fyll i e-post och lösenord!',
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
-              backgroundColor: Colors.red.shade600,
-              content: Row(
-                children: [
-                  const Icon(Icons.cancel, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Fyll i e-post och lösenord!',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+            ],
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
       return;
     }
     // Skicka eventet till AuthBloc
@@ -80,21 +67,17 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('DEBUG: listener fired for state ${state.runtimeType}'),
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          });
+          WidgetsBinding.instance.addPostFrameCallback((_) {});
           if (state is AuthAuthenticated) {
             // Visa välkomst-snackbar
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   behavior: SnackBarBehavior.floating,
-                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -124,7 +107,10 @@ class _LoginViewState extends State<LoginView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -203,14 +189,13 @@ class _LoginViewState extends State<LoginView> {
                           132,
                           54,
                         ),
-                        minimumSize: const Size(200, 50), // bredd 200, höjd 50
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                        ), // extra vertikal inre marginal
+                        foregroundColor: Colors.black, // 👈 textfärg blir svart
+                        minimumSize: const Size(200, 50),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         textStyle: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                        ), // större text
+                        ),
                       ),
                       child: const Text('Logga in'),
                     ),

@@ -136,10 +136,8 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
-  // Startar med systemets tema (kan vara ljus eller mörkt beroende på enhetens inställningar)
   ThemeMode _themeMode = ThemeMode.system;
 
-  /// Toggle för att växla mellan dark och light mode.
   void toggleTheme() {
     setState(() {
       _themeMode =
@@ -149,23 +147,28 @@ class MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Parking User',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.orange,
-          brightness: Brightness.dark,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 390), // iPhone 12 Pro Max bredd
+        child: MaterialApp(
+          title: 'Parking User',
+          theme: ThemeData(
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.orange,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          themeMode: _themeMode,
+          home: const AuthGate(),
         ),
-        useMaterial3: true,
       ),
-      themeMode: _themeMode,
-      home: const AuthGate(),
     );
   }
 }
